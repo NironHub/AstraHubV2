@@ -1,4 +1,4 @@
--- Custom UI Library (Rayfield Alternative)
+-- Custom UI Library (Fixed Version)
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
@@ -20,6 +20,11 @@ function CustomUI:CreateWindow(options)
     local Window = {}
     options = options or {}
     
+    -- Create ScreenGui (parent to CoreGui)
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "CustomUILibrary"
+    ScreenGui.Parent = game:GetService("CoreGui") -- Critical fix: Parent to CoreGui
+    
     local MainFrame = Instance.new("Frame")
     MainFrame.Name = "CustomUIWindow"
     MainFrame.Size = UDim2.new(0, 400, 0, 500)
@@ -28,6 +33,7 @@ function CustomUI:CreateWindow(options)
     MainFrame.BackgroundColor3 = Theme.MainColor
     MainFrame.BorderSizePixel = 0
     MainFrame.ClipsDescendants = true
+    MainFrame.Parent = ScreenGui -- Parent to ScreenGui
     
     local UICorner = Instance.new("UICorner")
     UICorner.CornerRadius = UDim.new(0, 8)
@@ -66,14 +72,11 @@ function CustomUI:CreateWindow(options)
     CloseButton.Parent = TitleBar
     
     CloseButton.MouseButton1Click:Connect(function()
-        MainFrame:Destroy()
+        ScreenGui:Destroy() -- Destroy entire UI
     end)
     
     -- Draggable Window
-    local Dragging
-    local DragInput
-    local DragStart
-    local StartPos
+    local Dragging, DragInput, DragStart, StartPos
     
     TitleBar.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -176,7 +179,7 @@ function CustomUI:CreateWindow(options)
         NotifyFrame.Position = UDim2.new(1, -310, 1, -90)
         NotifyFrame.BackgroundColor3 = Theme.MainColor
         NotifyFrame.BorderSizePixel = 0
-        NotifyFrame.Parent = MainFrame.Parent
+        NotifyFrame.Parent = ScreenGui -- Parent to ScreenGui
         
         local UICorner = Instance.new("UICorner")
         UICorner.CornerRadius = UDim.new(0, 8)
@@ -212,8 +215,23 @@ function CustomUI:CreateWindow(options)
         end)
     end
     
-    MainFrame.Parent = game:GetService("CoreGui")
     return Window
 end
 
-return CustomUI
+-- Example Usage (Must run in a LocalScript!)
+local UI = CustomUI:CreateWindow({
+    Name = "My Custom UI"
+})
+
+local MainTab = UI:CreateTab("Main")
+
+MainTab:CreateButton({
+    Name = "Click Me!",
+    Callback = function()
+        UI:Notify({
+            Title = "Success!",
+            Content = "The UI is working!",
+            Duration = 5
+        })
+    end
+})
